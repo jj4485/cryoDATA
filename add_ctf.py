@@ -26,7 +26,7 @@ def parse_args():
     parser.add_argument('-o', type=os.path.abspath, help='Output')
 
     group = parser.add_argument_group('CTF parameters')
-    parser.add_argument('--imagesize', type=float, default=554.6669, help='Image size (A) (default: %(default)s)')
+    parser.add_argument('--Apix', type=float, help='Pixel size (A/pix)')
     group.add_argument('--kv', default=300, type=float, help='Microscope voltage (kV) (default: %(default)s)')
     group.add_argument('--df-file', metavar='pkl', help='Defocus values (A)')
     group.add_argument('--dfu', default=15000, type=float, help='Defocus U (A) (default: %(default)s)')
@@ -45,7 +45,7 @@ def add_noise(particles, D, sigma):
     return particles
 
 def compute_full_ctf(D, Nimg, args):
-    freqs = np.arange(-D/2,D/2)/args.imagesize
+    freqs = np.arange(-D/2,D/2)/(args.Apix*D)
     x0, x1 = np.meshgrid(freqs,freqs)
     freqs = np.stack([x0.ravel(),x1.ravel()],axis=1)
     if args.df_file:
@@ -140,13 +140,15 @@ def main(args):
         args.ang, args.kv, args.wgh, args.cs, args.ps, args.metadata)
 
     log('Writing CTF params pickle')
-    params = np.ones((Nimg, 7), dtype=np.float32)
-    params[:,0] = args.imagesize/D
-    params[:,1:3] = defocus_list
-    params[:,3] = args.ang
-    params[:,4] = args.kv
-    params[:,5] = args.cs
-    params[:,6] = args.wgh
+    params = np.ones((Nimg, 9), dtype=np.float32)
+    params[:,0] = D
+    params[:,1] = args.Apix
+    params[:,2:4] = defocus_list
+    params[:,4] = args.ang
+    params[:,5] = args.kv
+    params[:,6] = args.cs
+    params[:,7] = args.wgh
+    params[:,8] = args.ps
     log(params[0])
     with open('{}.pkl'.format(args.o),'wb') as f:
         pickle.dump(params,f)

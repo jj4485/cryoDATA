@@ -23,12 +23,14 @@ def parse_args():
     parser.add_argument('--s2', type=float, help='Override --snr2 with gaussian noise stdev')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for sampling defocus values (default: %(default)s)')
     parser.add_argument('-o', required=True, type=os.path.abspath, help='Output .mrcs')
-    parser.add_argument('--out-star', type=os.path.abspath, help='Optionally provide output star file')
+    parser.add_argument('--out-star', type=os.path.abspath, help='Output star file (default: [output mrcs filename].star)')
+    parser.add_argument('--out-pkl', type=os.path.abspath, help='Output pkl file (default: [output mrcs filename].pkl)')
 
     group = parser.add_argument_group('CTF parameters')
-    parser.add_argument('--Apix', type=float, help='Pixel size (A/pix)')
+    group.add_argument('--Apix', type=float, help='Pixel size (A/pix)')
+    group.add_argument('--ctf-pkl', metavar='pkl', help='Use ctf parameters from a cryodrgn ctf pkl')
+    group.add_argument('--df-file', metavar='pkl', help='Use defocus parameters from a pkl file of a Nx2 np.array of values')
     group.add_argument('--kv', default=300, type=float, help='Microscope voltage (kV) (default: %(default)s)')
-    group.add_argument('--df-file', metavar='pkl', help='Defocus values (A)')
     group.add_argument('--dfu', default=15000, type=float, help='Defocus U (A) (default: %(default)s)')
     group.add_argument('--dfv', default=15000, type=float, help='Defocus V (A) (default: %(default)s)')
     group.add_argument('--ang', default=0, type=float, help='Astigmatism angle (deg) (default: %(default)s)')
@@ -86,7 +88,11 @@ def compute_full_ctf(D, Nimg, args):
     freqs = np.arange(-D/2,D/2)/(args.Apix*D)
     x0, x1 = np.meshgrid(freqs,freqs)
     freqs = np.stack([x0.ravel(),x1.ravel()],axis=1)
-    if args.df_file:
+    if args.ctf_pkl: # todo: refator
+        params = pickle.load(open(args.ctf_pkl,'rb'))
+        assert len(params) == Nimg
+        ctf = np.array([compute_ctf(freqs, *x, args.b) for x in params])
+    elif args.df_file:
         df = pickle.load(open(args.df_file,'rb'))
         assert len(df) == Nimg
         ctf = np.array([compute_ctf(freqs, i, i, args.ang, args.kv, args.cs, args.wgh, args.ps, args.b) \
@@ -173,24 +179,28 @@ def main(args):
     log('Writing image stack to {}'.format(args.o))
     mrc.write(args.o, particles.astype(np.float32))
 
-    log('Writing associated .star file')
-    if args.out_star:
-        write_starfile(args.out_star, args.o, Nimg, defocus_list, 
-            args.ang, args.kv, args.wgh, args.cs, args.ps)
+    if args.out_star is None:
+        args.out_star = f'{args.o}.star'
+    log(f'Writing associated .star file to {args.out_star}')
+    write_starfile(args.out_star, args.o, Nimg, defocus_list, 
+        args.ang, args.kv, args.wgh, args.cs, args.ps)
 
-    log('Writing CTF params pickle')
-    params = np.ones((Nimg, 9), dtype=np.float32)
-    params[:,0] = D
-    params[:,1] = args.Apix
-    params[:,2:4] = defocus_list
-    params[:,4] = args.ang
-    params[:,5] = args.kv
-    params[:,6] = args.cs
-    params[:,7] = args.wgh
-    params[:,8] = args.ps
-    log(params[0])
-    with open('{}.pkl'.format(args.o),'wb') as f:
-        pickle.dump(params,f)
+    if not args.ctf_pkl:
+        if args.out_pkl is None:
+            args.out_pkl = f'{args.o}.pkl'
+        log(f'Writing CTF params pickle to {args.out_pkl}')
+        params = np.ones((Nimg, 9), dtype=np.float32)
+        params[:,0] = D
+        params[:,1] = args.Apix
+        params[:,2:4] = defocus_list
+        params[:,4] = args.ang
+        params[:,5] = args.kv
+        params[:,6] = args.cs
+        params[:,7] = args.wgh
+        params[:,8] = args.ps
+        log(params[0])
+        with open(args.out_pkl,'wb') as f:
+            pickle.dump(params,f)
 
 if __name__ == '__main__':
     main(parse_args().parse_args())

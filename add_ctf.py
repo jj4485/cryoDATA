@@ -8,8 +8,8 @@ import sys, os
 import pickle
 from datetime import datetime as dt
 
-
 from cryodrgn.ctf import compute_ctf
+from cryodrgn import mrc
 from cryodrgn import utils
 
 log = utils.log
@@ -21,9 +21,9 @@ def parse_args():
     parser.add_argument('--snr2', default=0.05, type=float, help='SNR for second post-CTF application of noise (default: %(default)s)')
     parser.add_argument('--s1', type=float, help='Override --snr1 with gaussian noise stdev')
     parser.add_argument('--s2', type=float, help='Override --snr2 with gaussian noise stdev')
-    parser.add_argument('--metadata', help='EMAN euler angles to include in star file(.pkl)')
     parser.add_argument('--seed', type=int, default=0, help='Random seed for sampling defocus values (default: %(default)s)')
-    parser.add_argument('-o', type=os.path.abspath, help='Output')
+    parser.add_argument('-o', required=True, type=os.path.abspath, help='Output .mrcs')
+    parser.add_argument('--out-star', type=os.path.abspath, help='Optionally provide output star file')
 
     group = parser.add_argument_group('CTF parameters')
     parser.add_argument('--Apix', type=float, help='Pixel size (A/pix)')
@@ -39,6 +39,44 @@ def parse_args():
     group.add_argument('--sample-df', type=float, help='Jiggle defocus per image with this stdev (default: None)')
     group.add_argument('--no-astigmatism', action='store_true', help='Keep dfu and dfv the same per particle')
     return parser
+
+# todo - switch to cryodrgn starfile api
+def write_starfile(out, mrc, Nimg, df, ang, kv, wgh, cs, ps, metadata=None):
+    header = [ 
+    'data_images',
+    'loop_',
+    '_rlnImageName',
+    '_rlnDefocusU',
+    '_rlnDefocusV',
+    '_rlnDefocusAngle',
+    '_rlnVoltage',
+    '_rlnAmplitudeContrast',
+    '_rlnSphericalAberration',
+    '_rlnPhaseShift']
+
+    if metadata is not None:
+        header.extend(['_rlnEuler1','_rlnEuler2','_rlnEuler3\n'])
+        metadata = pickle.load(open(metadata,'rb'))
+        assert len(metadata) == Nimg
+    else:
+        header[-1] += '\n'
+    lines = []
+    filename = os.path.basename(mrc)
+    for i in range(Nimg):
+        line = ['{:06d}@{}'.format(i+1,filename),
+                '{:1f}'.format(df[i][0]),
+                '{:1f}'.format(df[i][1]),
+                ang[i] if type(ang) in (list, np.ndarray) else ang, kv, wgh, cs, ps]
+        if metadata is not None:
+            line.extend(metadata[i])
+        lines.append(' '.join([str(x) for x in line]))
+    f = open(out, 'w')
+    f.write('# Created {}\n'.format(dt.now()))
+    f.write('\n'.join(header))
+    f.write('\n'.join(lines))
+    f.write('\n')
+
+
 
 def add_noise(particles, D, sigma):
     particles += np.random.normal(0,sigma,particles.shape)
@@ -91,7 +129,7 @@ def main(args):
     np.random.seed(args.seed)
     log('RUN CMD:\n'+' '.join(sys.argv))
     log('Arguments:\n'+str(args))
-    particles = np.asarray([x.get() for x in utils.readMRClazy(args.particles)])
+    particles = mrc.parse_mrc(args.particles, lazy=False)
     Nimg = len(particles)
     D, D2 = particles[0].shape
     assert D == D2, 'Images must be square'
@@ -133,11 +171,12 @@ def main(args):
         particles = add_noise(particles, D, s2)
     
     log('Writing image stack to {}'.format(args.o))
-    utils.writeMRC(args.o, particles.astype(np.float32))
+    mrc.write(args.o, particles.astype(np.float32))
 
     log('Writing associated .star file')
-    utils.write_starfile('{}.star'.format(args.o), args.o, Nimg, defocus_list, 
-        args.ang, args.kv, args.wgh, args.cs, args.ps, args.metadata)
+    if args.out_star:
+        write_starfile(args.out_star, args.o, Nimg, defocus_list, 
+            args.ang, args.kv, args.wgh, args.cs, args.ps)
 
     log('Writing CTF params pickle')
     params = np.ones((Nimg, 9), dtype=np.float32)

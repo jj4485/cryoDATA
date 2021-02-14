@@ -8,7 +8,7 @@ import sys, os
 import pickle
 from datetime import datetime as dt
 
-from cryodrgn.ctf import compute_ctf
+from cryodrgn.ctf import compute_ctf_np as compute_ctf
 from cryodrgn import mrc
 from cryodrgn import utils
 
@@ -129,7 +129,7 @@ def main(args):
     np.random.seed(args.seed)
     log('RUN CMD:\n'+' '.join(sys.argv))
     log('Arguments:\n'+str(args))
-    particles = mrc.parse_mrc(args.particles, lazy=False)
+    particles = mrc.parse_mrc(args.particles, lazy=False)[0]
     Nimg = len(particles)
     D, D2 = particles[0].shape
     assert D == D2, 'Images must be square'

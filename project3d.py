@@ -33,7 +33,7 @@ def parse_args():
     parser.add_argument('-o', type=os.path.abspath, required=True, help='Output projection stack (.mrcs)')
     parser.add_argument('--out-pose', type=os.path.abspath, required=True, help='Output poses (.pkl)')
     parser.add_argument('--out-png', type=os.path.abspath, help='Montage of first 9 projections')
-    parser.add_argument('--in-pose', type=os.path.abspath, required=True, help='Optionally provide input poses instead of random poses (.pkl)')
+    parser.add_argument('--in-pose', type=os.path.abspath, help='Optionally provide input poses instead of random poses (.pkl)')
     parser.add_argument('-N', type=int, help='Number of random projections')
     parser.add_argument('-b', type=int, default=100, help='Minibatch size (default: %(default)s)')
     parser.add_argument('--t-extent', type=float, default=5, help='Extent of image translation in pixels (default: +/-%(default)s)')

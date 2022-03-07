@@ -95,10 +95,10 @@ def compute_full_ctf(D, Nimg, args):
     elif args.df_file:
         df = pickle.load(open(args.df_file,'rb'))
         assert len(df) == Nimg
-        ctf = np.array([compute_ctf(freqs, i, i, args.ang, args.kv, args.cs, args.wgh, args.ps, args.b) \
-                for i in df])
+        ctf = np.array([compute_ctf(freqs, i, j, args.ang, args.kv, args.cs, args.wgh, args.ps, args.b) \
+                for i, j in df])
         ctf = ctf.reshape((Nimg, D, D))
-        df = np.stack([df,df], axis=1)
+        #df = np.stack([df,df], axis=1)
     elif args.sample_df:
         df1 = np.random.normal(args.dfu,args.sample_df,Nimg)
         if args.no_astigmatism:

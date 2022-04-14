@@ -7,6 +7,7 @@ import numpy as np
 import sys, os
 import pickle
 from datetime import datetime as dt
+import matplotlib.pyplot as plt
 
 from cryodrgn.ctf import compute_ctf_np as compute_ctf
 from cryodrgn import mrc
@@ -25,6 +26,7 @@ def parse_args():
     parser.add_argument('-o', required=True, type=os.path.abspath, help='Output .mrcs')
     parser.add_argument('--out-star', type=os.path.abspath, help='Output star file (default: [output mrcs filename].star)')
     parser.add_argument('--out-pkl', type=os.path.abspath, help='Output pkl file (default: [output mrcs filename].pkl)')
+    parser.add_argument('--out-png')
 
     group = parser.add_argument_group('CTF parameters')
     group.add_argument('--Apix', type=float, help='Pixel size (A/pix)')
@@ -130,7 +132,22 @@ def normalize(particles):
     log('Shifting input images by {}'.format(mu))
     log('Scaling input images by {}'.format(std))
     return particles
- 
+
+def plot_projections(out_png, imgs):
+    fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(10,10))
+    axes = axes.ravel()
+    for i in range(min(len(imgs),9)):
+        axes[i].imshow(imgs[i])
+    plt.savefig(out_png)
+
+def mkbasedir(out):
+    if not os.path.exists(os.path.dirname(out)):
+        os.makedirs(os.path.dirname(out))
+
+def warnexists(out):
+    if os.path.exists(out):
+        log('Warning: {} already exists. Overwriting.'.format(out))
+
 def main(args):
     np.random.seed(args.seed)
     log('RUN CMD:\n'+' '.join(sys.argv))
@@ -141,6 +158,9 @@ def main(args):
     assert D == D2, 'Images must be square'
 
     log('Loaded {} images'.format(Nimg))
+
+    mkbasedir(args.o)
+    warnexists(args.o)
 
     #if not args.rad: args.rad = D/2
     #x0, x1 = np.meshgrid(np.arange(-D/2,D/2),np.arange(-D/2,D/2))
@@ -179,6 +199,10 @@ def main(args):
     log('Writing image stack to {}'.format(args.o))
     mrc.write(args.o, particles.astype(np.float32))
 
+    log('Writing png sample to {}'.format(args.out_png))
+    if args.out_png:
+        plot_projections(args.out_png, particles[:9])
+
     if args.out_star is None:
         args.out_star = f'{args.o}.star'
     log(f'Writing associated .star file to {args.out_star}')
@@ -201,6 +225,8 @@ def main(args):
         log(params[0])
         with open(args.out_pkl,'wb') as f:
             pickle.dump(params,f)
+
+    log('Done')
 
 if __name__ == '__main__':
     main(parse_args().parse_args())

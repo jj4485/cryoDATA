@@ -65,7 +65,7 @@ class Projector:
 
         # FT is not symmetric around origin
         D = nz
-        c = 2/(D-1)*(D/2) -1 
+        c = 2/(D-1)*(D/2) - 1
         self.center = torch.tensor([c,c,c]) # pixel coordinate for vol[D/2,D/2,D/2]
 
         if tilt is not None:
@@ -190,7 +190,7 @@ def main(args):
     else:
         log('Generating {} random rotations'.format(args.N))
         rots = RandomRot(args.N)
-    
+
     log('Projecting...')
     imgs = []
     iterator = data.DataLoader(rots, batch_size=args.b)

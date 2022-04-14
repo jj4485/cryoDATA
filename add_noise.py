@@ -31,8 +31,19 @@ def plot_projections(out_png, imgs):
         axes[i].imshow(imgs[i])
     plt.savefig(out_png)
 
+def mkbasedir(out):
+    if not os.path.exists(os.path.dirname(out)):
+        os.makedirs(os.path.dirname(out))
+
+def warnexists(out):
+    if os.path.exists(out):
+        log('Warning: {} already exists. Overwriting.'.format(out))
+
 def main(args):
     assert (args.snr is None) != (args.sigma is None) # xor
+
+    mkbasedir(args.o)
+    warnexists(args.o)
 
     # load particles
     particles = dataset.load_particles(args.mrcs, datadir=args.datadir)
@@ -65,6 +76,8 @@ def main(args):
 
     if args.out_png:
         plot_projections(args.out_png, particles[:9])
+
+    log('Done')
 
 if __name__ == '__main__':
     main(parse_args().parse_args())

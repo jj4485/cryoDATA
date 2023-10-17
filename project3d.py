@@ -92,7 +92,7 @@ class Projector:
 class Poses(data.Dataset):
     def __init__(self, pose_pkl):
         poses = utils.load_pkl(pose_pkl)
-        self.rots = torch.tensor(poses[0])
+        self.rots = torch.tensor(poses[0]).float()
         self.trans = poses[1]
         self.N = len(poses[0])
         assert self.rots.shape == (self.N,3,3)

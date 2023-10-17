@@ -93,7 +93,10 @@ def compute_full_ctf(D, Nimg, args):
     if args.ctf_pkl: # todo: refator
         params = pickle.load(open(args.ctf_pkl,'rb'))
         assert len(params) == Nimg
+        params = params[:,2:]
+        df = params[:,:2]
         ctf = np.array([compute_ctf(freqs, *x, args.b) for x in params])
+        ctf = ctf.reshape((Nimg, D, D))
     elif args.df_file:
         df = pickle.load(open(args.df_file,'rb'))
         assert len(df) == Nimg

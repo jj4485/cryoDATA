@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the input volume and output base directory
-input_volume="volume.mrc"
+input_volume="data/volume.mrc"
 output_base_dir="/scratch/network/jj4485/cryoDATA/cryoDATA"
 
 # Generate 10k projection images of a volume

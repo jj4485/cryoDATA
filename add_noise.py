@@ -10,7 +10,6 @@ from cryodrgn import mrc
 from cryodrgn import dataset
 from cryodrgn.lattice import EvenLattice
 
-log = utils.log
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -37,7 +36,7 @@ def mkbasedir(out):
 
 def warnexists(out):
     if os.path.exists(out):
-        log('Warning: {} already exists. Overwriting.'.format(out))
+        print('Warning: {} already exists. Overwriting.'.format(out))
 
 def main(args):
     assert (args.snr is None) != (args.sigma is None) # xor
@@ -47,7 +46,7 @@ def main(args):
 
     # load particles
     particles = dataset.load_particles(args.mrcs, datadir=args.datadir)
-    log(particles.shape)
+    print(particles.shape)
     Nimg, D, D = particles.shape
     
     # compute noise variance
@@ -68,7 +67,7 @@ def main(args):
         sigma = std/np.sqrt(args.snr)
 
     # add noise
-    log('Adding noise with std {}'.format(sigma))
+    print('Adding noise with std {}'.format(sigma))
     particles += np.random.normal(0,sigma,particles.shape)
 
     # save particles
@@ -77,7 +76,7 @@ def main(args):
     if args.out_png:
         plot_projections(args.out_png, particles[:9])
 
-    log('Done')
+    print('Done')
 
 if __name__ == '__main__':
     main(parse_args().parse_args())

@@ -13,7 +13,7 @@ from cryodrgn.ctf import compute_ctf_np as compute_ctf
 from cryodrgn import mrc
 from cryodrgn import utils
 
-log = utils.log
+
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -132,8 +132,8 @@ def normalize(particles):
     mu, std = np.mean(particles), np.std(particles)
     particles -= mu
     particles /= std
-    log('Shifting input images by {}'.format(mu))
-    log('Scaling input images by {}'.format(std))
+    print('Shifting input images by {}'.format(mu))
+    print('Scaling input images by {}'.format(std))
     return particles
 
 def plot_projections(out_png, imgs):
@@ -149,18 +149,18 @@ def mkbasedir(out):
 
 def warnexists(out):
     if os.path.exists(out):
-        log('Warning: {} already exists. Overwriting.'.format(out))
+        print('Warning: {} already exists. Overwriting.'.format(out))
 
 def main(args):
     np.random.seed(args.seed)
-    log('RUN CMD:\n'+' '.join(sys.argv))
-    log('Arguments:\n'+str(args))
+    print('RUN CMD:\n'+' '.join(sys.argv))
+    print('Arguments:\n'+str(args))
     particles = mrc.parse_mrc(args.particles, lazy=False)[0]
     Nimg = len(particles)
     D, D2 = particles[0].shape
     assert D == D2, 'Images must be square'
 
-    log('Loaded {} images'.format(Nimg))
+    print('Loaded {} images'.format(Nimg))
 
     mkbasedir(args.o)
     warnexists(args.o)
@@ -180,10 +180,10 @@ def main(args):
     else:
         s1 = args.s1
     if s1 > 0:
-        log('Adding noise with stdev {}'.format(s1))
+        print('Adding noise with stdev {}'.format(s1))
         particles = add_noise(particles, D, s1)
     
-    log('Applying the CTF')
+    print('Applying the CTF')
     ctf, defocus_list = compute_full_ctf(D, Nimg, args)
     particles = add_ctf(particles, ctf)
 
@@ -191,31 +191,31 @@ def main(args):
         std = np.std(particles[mask])
         # cascading of noise processes according to Frank and Al-Ali (1975) & Baxter (2009)
         snr2 = (1+1/args.snr1)/(1/args.snr2-1/args.snr1)
-        log('SNR2 target {} for total snr of {}'.format(snr2, args.snr2))
+        print('SNR2 target {} for total snr of {}'.format(snr2, args.snr2))
         s2 = std/np.sqrt(snr2)
     else:
         s2 = args.s2
     if s2 > 0:
-        log('Adding noise with stdev {}'.format(s2))
+        print('Adding noise with stdev {}'.format(s2))
         particles = add_noise(particles, D, s2)
     
-    log('Writing image stack to {}'.format(args.o))
+    print('Writing image stack to {}'.format(args.o))
     mrc.write(args.o, particles.astype(np.float32))
 
-    log('Writing png sample to {}'.format(args.out_png))
+    print('Writing png sample to {}'.format(args.out_png))
     if args.out_png:
         plot_projections(args.out_png, particles[:9])
 
     if args.out_star is None:
         args.out_star = f'{args.o}.star'
-    log(f'Writing associated .star file to {args.out_star}')
+    print(f'Writing associated .star file to {args.out_star}')
     write_starfile(args.out_star, args.o, Nimg, defocus_list, 
         args.ang, args.kv, args.wgh, args.cs, args.ps)
 
     if not args.ctf_pkl:
         if args.out_pkl is None:
             args.out_pkl = f'{args.o}.pkl'
-        log(f'Writing CTF params pickle to {args.out_pkl}')
+        print(f'Writing CTF params pickle to {args.out_pkl}')
         params = np.ones((Nimg, 9), dtype=np.float32)
         params[:,0] = D
         params[:,1] = args.Apix
@@ -225,11 +225,11 @@ def main(args):
         params[:,6] = args.cs
         params[:,7] = args.wgh
         params[:,8] = args.ps
-        log(params[0])
+        print(params[0])
         with open(args.out_pkl,'wb') as f:
             pickle.dump(params,f)
 
-    log('Done')
+    print('Done')
 
 if __name__ == '__main__':
     main(parse_args().parse_args())

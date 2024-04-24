@@ -24,8 +24,6 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
-log = utils.log
-vlog = utils.vlog
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -135,7 +133,7 @@ def mkbasedir(out):
 
 def warnexists(out):
     if os.path.exists(out):
-        log('Warning: {} already exists. Overwriting.'.format(out))
+        print('Warning: {} already exists. Overwriting.'.format(out))
 
 def translate_img(img, t):
     '''
@@ -153,7 +151,7 @@ def main(args):
         warnexists(out)
 
     if args.in_pose is None and args.t_extent == 0.:
-        log('Not shifting images')
+        print('Not shifting images')
     elif args.in_pose is None:
         assert args.t_extent > 0
 
@@ -162,13 +160,13 @@ def main(args):
         torch.manual_seed(args.seed)
 
     use_cuda = torch.cuda.is_available()
-    log('Use cuda {}'.format(use_cuda))
+    print('Use cuda {}'.format(use_cuda))
     if use_cuda:
         torch.set_default_tensor_type(torch.cuda.FloatTensor)
 
     t1 = time.time()    
     vol, _ = mrc.parse_mrc(args.mrc)
-    log('Loaded {} volume'.format(vol.shape))
+    print('Loaded {} volume'.format(vol.shape))
 
     if args.tilt:
         theta = args.tilt*np.pi/180
@@ -183,32 +181,32 @@ def main(args):
 
     if args.grid is not None:
         rots = GridRot(args.grid)
-        log('Generating {} rotations at resolution level {}'.format(len(rots), args.grid))
+        print('Generating {} rotations at resolution level {}'.format(len(rots), args.grid))
     elif args.in_pose is not None:
         rots = Poses(args.in_pose)
-        log('Generating {} rotations from {}'.format(len(rots), args.grid))
+        print('Generating {} rotations from {}'.format(len(rots), args.grid))
     else:
-        log('Generating {} random rotations'.format(args.N))
+        print('Generating {} random rotations'.format(args.N))
         rots = RandomRot(args.N)
 
-    log('Projecting...')
+    print('Projecting...')
     imgs = []
     iterator = data.DataLoader(rots, batch_size=args.b)
     for i, rot in enumerate(iterator):
-        vlog('Projecting {}/{}'.format((i+1)*len(rot), args.N))
+        vprint('Projecting {}/{}'.format((i+1)*len(rot), args.N))
         projections = projector.project(rot)
         projections = projections.cpu().numpy()
         imgs.append(projections)
 
     td = time.time()-t1
-    log('Projected {} images in {}s ({}s per image)'.format(rots.N, td, td/rots.N ))
+    print('Projected {} images in {}s ({}s per image)'.format(rots.N, td, td/rots.N ))
     imgs = np.vstack(imgs)
 
     if args.in_pose is None and args.t_extent:
-        log('Shifting images between +/- {} pixels'.format(args.t_extent))
+        print('Shifting images between +/- {} pixels'.format(args.t_extent))
         trans = np.random.rand(args.N,2)*2*args.t_extent - args.t_extent
     elif args.in_pose is not None:
-        log('Shifting images by input poses')
+        print('Shifting images by input poses')
         D = imgs.shape[-1]
         trans = rots.trans*D # convert to pixels
         trans = -trans[:,::-1] # convention for scipy
@@ -228,9 +226,9 @@ def main(args):
         assert D % 2 == 0
         trans /= D
 
-    log('Saving {}'.format(args.o))
+    print('Saving {}'.format(args.o))
     mrc.write(args.o,imgs.astype(np.float32))
-    log('Saving {}'.format(args.out_pose))
+    print('Saving {}'.format(args.out_pose))
     rots = rots.rots.cpu().numpy()
     with open(args.out_pose,'wb') as f:
         if args.t_extent:
@@ -238,7 +236,7 @@ def main(args):
         else:
             pickle.dump(rots, f)
     if args.out_png:
-        log('Saving {}'.format(args.out_png))
+        print('Saving {}'.format(args.out_png))
         plot_projections(args.out_png, imgs[:9])
 
 if __name__ == '__main__':

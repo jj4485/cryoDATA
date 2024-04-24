@@ -193,7 +193,7 @@ def main(args):
     imgs = []
     iterator = data.DataLoader(rots, batch_size=args.b)
     for i, rot in enumerate(iterator):
-        vprint('Projecting {}/{}'.format((i+1)*len(rot), args.N))
+        print('Projecting {}/{}'.format((i+1)*len(rot), args.N))
         projections = projector.project(rot)
         projections = projections.cpu().numpy()
         imgs.append(projections)

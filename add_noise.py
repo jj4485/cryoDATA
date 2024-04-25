@@ -8,8 +8,8 @@ from cryodrgn.lattice import EvenLattice
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('mrcs', help='Input particles (.mrcs, .star, or .txt)')
-    parser.add_argument('--snr', type=float)
-    parser.add_argument('--sigma', type=float)
+    #parser.add_argument('--snr', type=float)
+    #parser.add_argument('--sigma', type=float)
     parser.add_argument('--mask', choices=('none','strict','circular'), help='Type of mask for computing signal variance')
     parser.add_argument('--mask-r', type=int, help='Radius for circular mask')
     parser.add_argument('--datadir', help='Optionally overwrite path to starfile .mrcs if loading from a starfile')
@@ -28,7 +28,6 @@ def mkbasedir(out):
     os.makedirs(os.path.dirname(out), exist_ok=True)
 
 def main(args):
-    assert (args.snr is None) != (args.sigma is None)
     mkbasedir(args.o)
     particles = dataset.load_particles(args.mrcs)
     print(f"Loaded particles with shape: {particles.shape}")
@@ -39,7 +38,6 @@ def main(args):
     
     # Process each segment
     for start, end, snr in snr_segments:
-        
         segment = particles[start:end]
         std = np.std(segment)
         sigma = std / np.sqrt(snr)

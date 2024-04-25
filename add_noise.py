@@ -1,15 +1,9 @@
-'''Add noise to a particle stack at a desired SNR'''
-
 import argparse
 import numpy as np
-import sys, os
+import os
 import matplotlib.pyplot as plt
-
-from cryodrgn import utils
-from cryodrgn import mrc
-from cryodrgn import dataset
+from cryodrgn import mrc, dataset
 from cryodrgn.lattice import EvenLattice
-
 
 def parse_args():
     parser = argparse.ArgumentParser(description=__doc__)
@@ -24,59 +18,40 @@ def parse_args():
     return parser
 
 def plot_projections(out_png, imgs):
-    fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(10,10))
+    fig, axes = plt.subplots(nrows=3, ncols=3, figsize=(10, 10))
     axes = axes.ravel()
     for i in range(min(len(imgs),9)):
         axes[i].imshow(imgs[i])
     plt.savefig(out_png)
 
 def mkbasedir(out):
-    if not os.path.exists(os.path.dirname(out)):
-        os.makedirs(os.path.dirname(out))
-
-def warnexists(out):
-    if os.path.exists(out):
-        print('Warning: {} already exists. Overwriting.'.format(out))
+    os.makedirs(os.path.dirname(out), exist_ok=True)
 
 def main(args):
-    assert (args.snr is None) != (args.sigma is None) # xor
-
+    assert (args.snr is None) != (args.sigma is None)
     mkbasedir(args.o)
-    warnexists(args.o)
-
-    # load particles
-    particles = dataset.load_particles(args.mrcs, datadir=args.datadir)
-    print(particles.shape)
-    Nimg, D, D = particles.shape
+    particles = dataset.load_particles(args.mrcs)
+    print(f"Loaded particles with shape: {particles.shape}")
+    Nimg, D, _ = particles.shape
     
-    # compute noise variance
-    if args.sigma:
-        sigma = args.sigma
-    else:
-        Nstd = min(10000,Nimg)
-        if args.mask == 'strict':
-            mask = np.where(particles[:Nstd]>0)
-            std = np.std(particles[mask])
-        elif args.mask == 'circular':
-            lattice = EvenLattice(D)
-            mask = lattice.get_circular_mask(args.mask_r)
-            mask = np.where(mask)[0] # convert from torch uint mask to array index
-            std = np.std(particles[:Nstd].reshape(Nstd,-1)[:,mask])
-        else:
-            std = np.std(particles[:Nstd])
-        sigma = std/np.sqrt(args.snr)
-
-    # add noise
-    print('Adding noise with std {}'.format(sigma))
-    particles += np.random.normal(0,sigma,particles.shape)
-
-    # save particles
+    # SNR segments and their corresponding SNR values
+    snr_segments = [(0, 10000, 1.0), (10000, 20000, 0.1), (20000, 30000, 0.01), (30000, 40000, 0.001)]
+    
+    # Process each segment
+    for start, end, snr in snr_segments:
+        segment = particles[start:end]
+        std = np.std(segment)
+        sigma = std / np.sqrt(snr)
+        print(f'Adding noise with std {sigma} to particles from {start} to {end}')
+        particles[start:end] += np.random.normal(0, sigma, segment.shape)
+    
+    # Save the processed particles
     mrc.write(args.o, particles.astype(np.float32))
-
+    
     if args.out_png:
         plot_projections(args.out_png, particles[:9])
-
-    print('Done')
+    
+    print('All processing completed.')
 
 if __name__ == '__main__':
-    main(parse_args().parse_args())
+    main(parse_args())

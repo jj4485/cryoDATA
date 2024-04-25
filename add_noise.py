@@ -53,4 +53,5 @@ def main(args):
     print('All processing completed.')
 
 if __name__ == '__main__':
-    main(parse_args())
+    args = parse_args()
+    main(args)

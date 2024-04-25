@@ -35,10 +35,11 @@ def main(args):
     Nimg, D, _ = particles.shape
     
     # SNR segments and their corresponding SNR values
-    snr_segments = [(0, 10000, 1.0), (10000, 20000, 0.1), (20000, 30000, 0.01), (30000, 40000, 0.001)]
+    snr_segments = [(0, 10000, 1.0), (10000, 20000, 0.1778), (20000, 30000, 0.0316), (30000, 40000, 0.0056), (40000, 50000, 0.001)]
     
     # Process each segment
     for start, end, snr in snr_segments:
+        
         segment = particles[start:end]
         std = np.std(segment)
         sigma = std / np.sqrt(snr)

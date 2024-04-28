@@ -3,16 +3,16 @@
 # Curriculum learning with cryodrgn for noisy particle datasets
 #
 # First batch of training
-cryodrgn train_nn data/random_learning/output_noisy_particles.mrcs --poses data/curriculum_learning/poses.pkl --ctf data/curriculum_learning/output_particles_w_ctf.mrcs.pkl--uninvert-data --ind first_10000_indices.pkl -o data/random_learning_batch1
+cryodrgn train_nn output_noisy_particles.mrcs --poses poses.pkl --ctf output_particles_w_ctf.mrcs.pkl --uninvert-data --ind first_10000_indices.pkl -o batch1
 
 # Second batch of training with previous weights
-cryodrgn train_nn data/random_learning/output_noisy_particles.mrcs --poses data/curriculum_learning/poses.pkl --ctf data/curriculum_learning/output_particles_w_ctf.mrcs.pkl --uninvert-data --ind second_10000_indices.pkl --load data/random_learning_batch1/weights.pkl --num-epochs 40 -o data/random_learning_batch2
+cryodrgn train_nn output_noisy_particles.mrcs --poses poses.pkl --ctf output_particles_w_ctf.mrcs.pkl --uninvert-data --ind second_10000_indices.pkl --load batch1/weights.pkl --num-epochs 40 -o batch2
 
 # Third batch of training with previous weights
-cryodrgn train_nn data/random_learning/output_noisy_particles.mrcs --poses data/curriculum_learning/poses.pkl --ctf data/curriculum_learning/output_particles_w_ctf.mrcs.pkl --uninvert-data --ind third_10000_indices.pkl --load data/random_learning_batch2/weights.pkl --num-epochs 60 -o data/random_learning_batch3
+cryodrgn train_nn output_noisy_particles.mrcs --poses poses.pkl --ctf output_particles_w_ctf.mrcs.pkl --uninvert-data --ind third_10000_indices.pkl --load batch2/weights.pkl --num-epochs 60 -o batch3
 
 # Fourth batch of training with previous weights
-cryodrgn train_nn data/random_learning/output_noisy_particles.mrcs --poses data/curriculum_learning/poses.pkl --ctf data/curriculum_learning/output_particles_w_ctf.mrcs.pkl --uninvert-data --ind fourth_10000_indices.pkl --load data/random_learning_batch3/weights.pkl --num-epochs 80 -o data/random_learning_batch4
+cryodrgn train_nn output_noisy_particles.mrcs --poses poses.pkl --ctf output_particles_w_ctf.mrcs.pkl --uninvert-data --ind fourth_10000_indices.pkl --load batch3/weights.pkl --num-epochs 80 -o batch4
 
 # Fifth and final batch of training with previous weights
-cryodrgn train_nn data/random_learning/output_noisy_particles.mrcs --poses data/curriculum_learning/poses.pkl --ctf data/curriculum_learning/output_particles_w_ctf.mrcs.pkl --uninvert-data --ind fifth_10000_indices.pkl --load data/random_learning_batch4/weights.pkl --num-epochs 100 -o data/random_learning_batch5
+cryodrgn train_nn output_noisy_particles.mrcs --poses poses.pkl --ctf output_particles_w_ctf.mrcs.pkl --uninvert-data --ind fifth_10000_indices.pkl --load batch4/weights.pkl --num-epochs 100 -o batch5

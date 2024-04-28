@@ -15,8 +15,8 @@ import pandas as pd
 import torch
 from typing import Optional
 from cryodrgn import fft
-from cryodrgn.source import ImageSource
-from cryodrgn.commands_utils.plot_fsc import create_fsc_plot
+from imagesource import ImageSource
+from plot_fsc import create_fsc_plot
 
 logger = logging.getLogger(__name__)
 

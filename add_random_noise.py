@@ -44,7 +44,7 @@ def main(args):
         print("randomly adding noise")
         start_index = i * particles_per_snr
         end_index = start_index + particles_per_snr
-        selected_indices = shuffled_indices[start_index, end_index]
+        selected_indices = shuffled_indices[start_index:end_index]
         segment = particles[selected_indices]
         std = np.std(segment, axis=(1, 2), keepdims=True)
         sigma = std/np.sqrt(snr)

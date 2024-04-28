@@ -238,23 +238,19 @@ class MRCFileSource(ImageSource):
         header = MRCHeader.parse(filepath)
         self.header = header
         self.mrcfile_path = filepath
-        self.dtype = header.dtype
-        self.start = 1024 + header.fields["next"]  # start of image data
-        self.nz, self.ny, self.nx = (
-            header.fields["nz"],
-            header.fields["ny"],
-            header.fields["nx"],
-        )
+        self.dtype = np.dtype(header.dtype)  # Ensure dtype is correctly initialized as a numpy dtype object
+        self.start = 1024 + header.fields["next"]  # Start of image data
+        self.nz, self.ny, self.nx = header.fields["nz"], header.fields["ny"], header.fields["nx"]
         assert self.ny == self.nx, "Only square images supported"
         self.size = self.ny * self.nx
-        self.stride = self.dtype().itemsize * self.size
+        self.stride = self.dtype.itemsize * self.size  # Correctly accessing itemsize
 
         super().__init__(
             D=self.ny,
             n=self.nz,
             filenames=filepath,
             max_threads=1,
-            dtype=self.dtype,
+            dtype=self.dtype.name,
             lazy=lazy,
             indices=indices,
         )

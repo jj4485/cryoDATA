@@ -92,13 +92,15 @@ def calculate_fsc(
     return pd.DataFrame(dict(pixres=np.arange(D // 2) / D, fsc=fsc))
 
 
-def main(args):
+def main():
+    parser = argparse.ArgumentParser(description="Compute Fourier shell correlation between two volumes.")
+    add_args(parser)
+    args = parser.parse_args()
     print("reading in volume1")
     vol1 = ImageSource.from_file(args.volumes[0])
     print("reading in volume2")
     vol2 = ImageSource.from_file(args.volumes[1])
     fsc_vals = calculate_fsc(vol1.images(), vol2.images(), args.mask)
-
     if args.outtxt:
         logger.info(f"Saving FSC values to {args.outtxt}")
         fsc_vals.to_csv(args.outtxt, sep=" ", index=False)

@@ -16,3 +16,4 @@ cryodrgn train_nn data/curriculum_learning/output_noisy_particles.mrcs --poses d
 
 # Fifth and final batch of training with previous weights
 cryodrgn train_nn data/curriculum_learning/output_noisy_particles.mrcs --poses data/curriculum_learning/poses.pkl --ctf data/curriculum_learning/output_projections_w_ctf.mrcs.pkl --uninvert-data --ind fifth_10000_indices.pkl --load data/curriculum_learning_batch4/weights.pkl --num-epochs 100 -o data/curriculum_learning_batch5
+#asdf

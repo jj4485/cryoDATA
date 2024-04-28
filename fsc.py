@@ -121,4 +121,5 @@ def main(args):
             plot_file = str(args.plot)
 
         logger.info(f"Saving plot to {plot_file}")
+        print("plotting fsc plot")
         create_fsc_plot(fsc_vals=fsc_vals, outfile=plot_file, Apix=args.Apix)

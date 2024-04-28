@@ -50,6 +50,7 @@ def main(args):
         sigma = std/np.sqrt(snr)
         noise = np.random.normal(0, sigma, segment.shape)
         particles[selected_indices] += noise
+        print(f"SNR: {snr}, Std Dev Added: {sigma.mean()}")  # Printing the mean standard deviation of the added noise
     
 
     mrc.write(args.o, particles.astype(np.float32))

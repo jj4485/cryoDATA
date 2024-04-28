@@ -44,8 +44,8 @@ def main(args):
         print(f'Adding noise with std {sigma} to particles from {start} to {end}')
         particles[start:end] += np.random.normal(0, sigma, segment.shape)
     
-    np.random.shuffle(particles)
-    print("added shuffling to the array")
+    #np.random.shuffle(particles)
+    #print("added shuffling to the array")
     # Save the processed particles
     mrc.write(args.o, particles.astype(np.float32))
     

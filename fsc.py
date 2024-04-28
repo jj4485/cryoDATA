@@ -93,7 +93,9 @@ def calculate_fsc(
 
 
 def main(args):
+    print("reading in volume1")
     vol1 = ImageSource.from_file(args.volumes[0])
+    print("reading in volume2")
     vol2 = ImageSource.from_file(args.volumes[1])
     fsc_vals = calculate_fsc(vol1.images(), vol2.images(), args.mask)
 
@@ -122,4 +124,4 @@ def main(args):
 
         logger.info(f"Saving plot to {plot_file}")
         print("plotting fsc plot")
-        create_fsc_plot(fsc_vals=fsc_vals, outfile=plot_file, Apix=args.Apix)
+        create_fsc_plot(fsc_vals=fsc_vals, outfile=plot_file, Apix=ar1gs.Apix)

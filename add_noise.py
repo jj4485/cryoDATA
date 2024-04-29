@@ -49,13 +49,14 @@ def main(args):
     #print("added shuffling to the array")
     # Save the processed particles
     mrc.write(args.o, particles.astype(np.float32))
-    
+    slice = [1, 10001, 20001, 30001, 40001]
     if args.out_png:
-        plot_projections(args.out_png, particles[:9])
+        plot_projections(args.out_png, particles[slice])
     
     print('All processing completed.')
 
-    plot_projections('projections.png', particles)
+    plot_projections('projections.png', particles[:9])
+
 
 if __name__ == '__main__':
     main(parse_args().parse_args())

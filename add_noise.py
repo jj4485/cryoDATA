@@ -45,8 +45,8 @@ def main(args):
         particles[start:end] += np.random.normal(0, sigma, segment.shape)
     
     #this randomizes the noise addition 
-    np.random.shuffle(particles)
-    print("added shuffling to the array")
+    #np.random.shuffle(particles)
+    #print("added shuffling to the array")
     # Save the processed particles
     mrc.write(args.o, particles.astype(np.float32))
     
@@ -54,6 +54,8 @@ def main(args):
         plot_projections(args.out_png, particles[:9])
     
     print('All processing completed.')
+
+    plot_projections('projections.png', particles)
 
 if __name__ == '__main__':
     main(parse_args().parse_args())
